@@ -1,0 +1,26 @@
+# Dependencies and build output
+**/node_modules/
+**/.next/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs and local tooling
+*.log
+npm-debug.log*
+.npm-cache/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Local credential notes
+plans/creds.md
