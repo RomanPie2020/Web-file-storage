@@ -4,6 +4,13 @@ export interface AuthenticatedUser {
   claims: Record<string, unknown>;
 }
 
+export interface AuthenticatedRequest {
+  headers: {
+    authorization?: string;
+  };
+  user?: AuthenticatedUser;
+}
+
 declare global {
   namespace Express {
     interface Request {
