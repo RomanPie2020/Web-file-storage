@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { HealthController } from './health/health.controller';
 import * as Joi from 'joi';
 import { HealthService } from './health/health.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: Joi.object({
@@ -15,7 +16,7 @@ import { HealthService } from './health/health.service';
     SUPABASE_JWT_ISSUER: Joi.string().uri().allow('').optional(),
     SUPABASE_JWT_AUDIENCE: Joi.string().allow('').optional(),
     SUPABASE_JWKS_URL: Joi.string().uri().allow('').optional(),
-  }) })],
+  }) }), AuthModule],
   controllers: [HealthController],
   providers: [HealthService],
 })
