@@ -1,5 +1,7 @@
 # Acme Data Room MVP
 
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for the project-wide rules for readable, secure, and maintainable code.
+
 ## Local development
 
 Prerequisites: Node.js 20+ and npm.
