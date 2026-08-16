@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { apiRequest } from '../../../lib/api';
+import { apiRequest } from '../../../../lib/api';
 type Item = { id: string; name: string; sizeBytes?: string; mimeType?: string };
 type Content = {
   roomName: string;
@@ -9,64 +9,39 @@ type Content = {
   files?: Item[];
   file?: Item & { url: string; downloadUrl: string };
 };
-export default function PublicSharePage() {
-  const { token } = useParams<{ token: string }>();
-  const [root, setRoot] = useState<{ resourceType: 'DATA_ROOM' | 'FOLDER'; resourceId: string }>();
-  const [path, setPath] = useState<Item[]>([]);
+export default function UserSharePage() {
+  const { id } = useParams<{ id: string }>();
   const [content, setContent] = useState<Content>();
+  const [path, setPath] = useState<Item[]>([]);
   const [error, setError] = useState('Loading shared resource…');
-  async function load(type: 'DATA_ROOM' | 'FOLDER', id: string) {
+  const load = async (type: string, resourceId?: string) => {
     try {
       setError('');
-      setContent(
-        await apiRequest<Content>(
-          `/shares/public/${token}/content?resourceType=${type}&resourceId=${id}`,
-        ),
-      );
+      const query = resourceId ? '?resourceType=' + type + '&resourceId=' + resourceId : '';
+      setContent(await apiRequest<Content>('/shares/' + id + '/content' + query));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Share unavailable');
     }
-  }
-  useEffect(() => {
-    apiRequest<{ resourceType: 'DATA_ROOM' | 'FOLDER'; resourceId: string }>(
-      `/shares/public/${token}`,
-    )
-      .then((r) => {
-        setRoot(r);
-        void load(r.resourceType, r.resourceId);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Share unavailable'));
-  }, [token]);
-  const openFile = async (id: string) => {
-    const result = await apiRequest<Content>(
-      `/shares/public/${token}/content?resourceType=FILE&resourceId=${id}`,
-    );
-    setContent(result);
   };
+  useEffect(() => {
+    void load('');
+  }, [id]);
   return (
     <main className="app-shell">
       <header>
         <div>
-          <p className="eyebrow">PUBLIC DATA ROOM</p>
-          <h1>{content?.roomName ?? 'Shared Data Room'}</h1>
+          <p className="eyebrow">SHARED WITH ME</p>
+          <h1>{content?.roomName ?? 'Shared resource'}</h1>
         </div>
       </header>
-      {error ? (
+      {error && !content ? (
         <p>{error}</p>
       ) : content?.file ? (
         <section>
-          <button
-            type="button"
-            onClick={() => {
-              const parent = path.at(-1);
-              if (parent) void load('FOLDER', parent.id);
-              else if (root) void load(root.resourceType, root.resourceId);
-            }}
-          >
+          <button type="button" onClick={() => void load('FOLDER', path.at(-1)?.id)}>
             ← Back to folder
           </button>
           <h2>{content.file.name}</h2>
-          <p>{content.file.sizeBytes} bytes</p>
           {content.file.mimeType === 'application/pdf' && (
             <iframe
               title={content.file.name}
@@ -80,30 +55,28 @@ export default function PublicSharePage() {
         </section>
       ) : (
         <>
-          <nav>
+          <nav aria-label="Breadcrumbs">
             <button
               type="button"
               onClick={() => {
-                if (root) {
-                  setPath([]);
-                  void load(root.resourceType, root.resourceId);
-                }
+                setPath([]);
+                void load('');
               }}
             >
               Root
             </button>
-            {path.map((p, i) => (
-              <span key={p.id}>
+            {path.map((folder, index) => (
+              <span key={folder.id}>
                 {' '}
                 /{' '}
                 <button
                   type="button"
                   onClick={() => {
-                    setPath(path.slice(0, i + 1));
-                    void load('FOLDER', p.id);
+                    setPath(path.slice(0, index + 1));
+                    void load('FOLDER', folder.id);
                   }}
                 >
-                  {p.name}
+                  {folder.name}
                 </button>
               </span>
             ))}
@@ -124,13 +97,12 @@ export default function PublicSharePage() {
             ))}
             {content?.files?.map((f) => (
               <li key={f.id}>
-                <button type="button" onClick={() => void openFile(f.id)}>
+                <button type="button" onClick={() => void load('FILE', f.id)}>
                   📄 {f.name}
                 </button>
               </li>
             ))}
           </ul>
-          {!content?.folders?.length && !content?.files?.length && <p>This folder is empty.</p>}
         </>
       )}
     </main>

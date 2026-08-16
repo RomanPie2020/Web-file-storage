@@ -4,6 +4,7 @@ import type { Folder, Room, RoomFile } from './types';
 export type Listing = { folders: Folder[]; files: RoomFile[] };
 
 export const fetchRoom = () => apiRequest<Room>('/data-rooms/default');
+export const fetchShared = () => apiRequest<{ id: string; resourceType: string; resourceId: string; room?: { name: string }; sharedBy: string }[]>('/shares/mine');
 
 export async function fetchListing(roomId: string, parentId?: string): Promise<Listing> {
   return {

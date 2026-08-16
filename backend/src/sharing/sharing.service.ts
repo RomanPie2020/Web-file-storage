@@ -45,6 +45,28 @@ export class SharingService {
     return this.prisma.share.create({ data: { resourceType: input.resourceType, resourceId: input.resourceId, shareType, sharedWithUserId, publicToken: shareType === ShareType.PUBLIC ? randomBytes(32).toString('base64url') : undefined, expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined }, select: { id: true, resourceType: true, resourceId: true, shareType: true, role: true, publicToken: true, sharedWithUserId: true, expiresAt: true, revokedAt: true, createdAt: true } });
   }
   async list(userId: string, resource: Resource) { await this.owns(userId, resource); return this.prisma.share.findMany({ where: { resourceType: resource.resourceType, resourceId: resource.resourceId }, orderBy: { createdAt: 'desc' }, select: { id: true, resourceType: true, resourceId: true, shareType: true, role: true, publicToken: true, sharedWithUserId: true, expiresAt: true, revokedAt: true, createdAt: true } }); }
+  async listForUser(userId: string) {
+    const shares = await this.prisma.share.findMany({ where: { shareType: ShareType.USER, sharedWithUserId: userId, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }, orderBy: { createdAt: 'desc' } });
+    return Promise.all(shares.map(async (share) => {
+      const room = await this.roomOf(share);
+      const owner = room ? await this.admin.auth.admin.getUserById(room.ownerId) : null;
+      return { id: share.id, resourceType: share.resourceType, resourceId: share.resourceId, role: share.role, room, sharedBy: owner?.data.user?.email ?? 'another user' };
+    }));
+  }
+  async sharedContent(userId: string, shareId: string, resourceType?: ShareResourceType, resourceId?: string) {
+    const share = await this.prisma.share.findFirst({ where: { id: shareId, shareType: ShareType.USER, sharedWithUserId: userId, revokedAt: null } });
+    if (!share || (share.expiresAt && share.expiresAt <= new Date())) throw new NotFoundException('Share is unavailable');
+    const resource = { resourceType: resourceType ?? share.resourceType, resourceId: resourceId ?? share.resourceId };
+    await this.assertAccess(userId, resource);
+    return this.publicContentForResource(resource);
+  }
+  private async publicContentForResource(resource: Resource) {
+    const room = await this.roomOf(resource); if (!room) throw new NotFoundException('Shared resource was not found');
+    if (resource.resourceType === ShareResourceType.FILE) { const file = await this.prisma.file.findUnique({ where: { id: resource.resourceId }, select: { id: true, name: true, sizeBytes: true, mimeType: true, storagePath: true } }); if (!file) return { roomName: room.name, file: null }; const signed = await this.admin.storage.from(this.bucket).createSignedUrl(file.storagePath, 300); const download = await this.admin.storage.from(this.bucket).createSignedUrl(file.storagePath, 300, { download: file.name }); return { roomName: room.name, file: { id: file.id, name: file.name, sizeBytes: file.sizeBytes.toString(), mimeType: file.mimeType, url: signed.data?.signedUrl, downloadUrl: download.data?.signedUrl } }; }
+    const parentId = resource.resourceType === ShareResourceType.FOLDER ? resource.resourceId : null;
+    const [folders, files] = await Promise.all([this.prisma.folder.findMany({ where: { dataRoomId: room.id, parentId }, select: { id: true, name: true } }), this.prisma.file.findMany({ where: { dataRoomId: room.id, folderId: parentId }, select: { id: true, name: true, sizeBytes: true, mimeType: true } })]);
+    return { roomName: room.name, folders, files: files.map((f) => ({ ...f, sizeBytes: f.sizeBytes.toString() })) };
+  }
   async revoke(userId: string, id: string) { const share = await this.prisma.share.findUnique({ where: { id } }); if (!share) throw new NotFoundException('Share was not found'); await this.owns(userId, share); return this.prisma.share.update({ where: { id }, data: { revokedAt: new Date() }, select: { id: true, revokedAt: true } }); }
 
   private async candidates(resource: Resource): Promise<Resource[]> {

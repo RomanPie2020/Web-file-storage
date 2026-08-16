@@ -7,7 +7,7 @@ import { apiRequest } from '../../lib/api';
 import { DialogState, FilePreview, Folder, MutationVariables, Room, RoomFile } from './types';
 import { executeMutation } from './mutations';
 import { buildDialogMutation } from './dialog-actions';
-import { fetchAllFolders, fetchListing, fetchRoom } from './queries';
+import { fetchAllFolders, fetchListing, fetchRoom, fetchShared } from './queries';
 import { useFileUpload } from './hooks/use-file-upload';
 import { Toast } from '../../components/ui/toast';
 import { Breadcrumbs } from './components/breadcrumbs';
@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [previewError, setPreviewError] = useState('');
   const parentId = path.at(-1)?.id;
   const roomQuery = useQuery({ queryKey: ['room'], queryFn: fetchRoom });
+  const sharedQuery = useQuery({ queryKey: ['shared'], queryFn: fetchShared });
   const listing = useQuery({
     queryKey: ['listing', room?.id, parentId],
     enabled: !!room,
@@ -125,6 +126,7 @@ export default function DashboardPage() {
           router.replace('/');
         }}
       />
+      {sharedQuery.data && sharedQuery.data.length > 0 && <section className="shared-list"><h2>Shared with me</h2><ul>{sharedQuery.data.map((share) => <li key={share.id}><button type="button" onClick={() => window.open(`/share/user/${share.id}`, '_self')}>{share.resourceType} · {share.room?.name ?? 'Shared resource'} <small>Shared by {share.sharedBy}</small></button></li>)}</ul></section>}
       {toast && <Toast onClose={() => setToast('')}>{toast}</Toast>}
       <Breadcrumbs path={path} onNavigate={(index) => setPath(path.slice(0, index))} />
       <DashboardToolbar
