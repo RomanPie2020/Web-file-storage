@@ -1,67 +1,172 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabase-browser';
-import { apiRequest } from '../../lib/api';
-
-interface AuthMeResponse {
-  id: string;
-  email?: string;
-}
-
+'use client'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../../lib/supabase-browser'
+import { apiRequest } from '../../lib/api'
+type Room = { id: string; name: string }
+type Folder = { id: string; name: string; parentId: string | null }
 export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<AuthMeResponse | null>(null);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    void supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) {
-        return;
-      }
-      if (!data.session) {
-        router.replace('/');
-        return;
-      }
-      try {
-        setUser(await apiRequest<AuthMeResponse>('/auth/me'));
-      } catch {
-        await supabase.auth.signOut();
-        setError('Unable to verify your session. Please sign in again.');
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
-  if (error) {
-    return (
-      <main>
-        <p role="alert">{error}</p>
-        <button onClick={() => router.replace('/')}>Back to sign in</button>
-      </main>
-    );
-  }
-  if (!user) {
-    return (
-      <main>
-        <p>Loading your session…</p>
-      </main>
-    );
-  }
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.replace('/');
-  }
-
-  return (
-    <main>
-      <h1>Data Room</h1>
-      <p>Signed in as {user.email ?? user.id}</p>
-      <button onClick={signOut}>Sign out</button>
-    </main>
-  );
+	const router = useRouter()
+	const [room, setRoom] = useState<Room | null>(null)
+	const [folders, setFolders] = useState<Folder[]>([])
+	const [path, setPath] = useState<Folder[]>([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
+	const parentId = path.at(-1)?.id
+	async function loadFolders(roomId: string, parent?: string) {
+		setLoading(true)
+		setError('')
+		try {
+			setFolders(
+				await apiRequest<Folder[]>(
+					`/data-rooms/${roomId}/folders${parent ? `?parentId=${parent}` : ''}`,
+				),
+			)
+		} catch {
+			setError('Unable to load folders.')
+		} finally {
+			setLoading(false)
+		}
+	}
+	useEffect(() => {
+		let active = true
+		void supabase.auth.getSession().then(async ({ data }) => {
+			if (!active) return
+			if (!data.session) {
+				router.replace('/')
+				return
+			}
+			try {
+				const nextRoom = await apiRequest<Room>('/data-rooms/default')
+				if (!active) return
+				setRoom(nextRoom)
+				await loadFolders(nextRoom.id)
+			} catch {
+				setError('Unable to load your Data Room.')
+				setLoading(false)
+			}
+		})
+		return () => {
+			active = false
+		}
+	}, [router])
+	const location = useMemo(
+		() => ['Root', ...path.map(folder => folder.name)],
+		[path],
+	)
+	async function addFolder() {
+		if (!room) return
+		const name = window.prompt('Folder name')
+		if (!name?.trim()) return
+		try {
+			await apiRequest(`/data-rooms/${room.id}/folders`, {
+				method: 'POST',
+				body: JSON.stringify({ name, parentId }),
+			})
+			await loadFolders(room.id, parentId)
+		} catch {
+			setError('Could not create that folder.')
+		}
+	}
+	async function renameFolder(folder: Folder) {
+		if (!room) return
+		const name = window.prompt('New folder name', folder.name)
+		if (!name?.trim()) return
+		try {
+			await apiRequest(`/data-rooms/${room.id}/folders/${folder.id}`, {
+				method: 'PATCH',
+				body: JSON.stringify({ name }),
+			})
+			await loadFolders(room.id, parentId)
+		} catch {
+			setError('Could not rename that folder.')
+		}
+	}
+	async function deleteFolder(folder: Folder) {
+		if (!room || !window.confirm(`Delete “${folder.name}” and its contents?`))
+			return
+		try {
+			await apiRequest(`/data-rooms/${room.id}/folders/${folder.id}`, {
+				method: 'DELETE',
+			})
+			await loadFolders(room.id, parentId)
+		} catch {
+			setError('Could not delete that folder.')
+		}
+	}
+	async function signOut() {
+		await supabase.auth.signOut()
+		router.replace('/')
+	}
+	if (loading && !room)
+		return (
+			<main>
+				<p>Loading your Data Room…</p>
+			</main>
+		)
+	return (
+		<main className='app-shell'>
+			<header>
+				<div>
+					<p className='eyebrow'>ACME DATA ROOM</p>
+					<h1>{room?.name ?? 'Data Room'}</h1>
+				</div>
+				<button onClick={signOut}>Sign out</button>
+			</header>
+			{error && (
+				<p role='alert' className='error'>
+					{error}
+				</p>
+			)}
+			<nav aria-label='Breadcrumbs' className='breadcrumbs'>
+				{location.map((name, index) => (
+					<button
+						key={`${name}-${index}`}
+						onClick={() => {
+							const next = path.slice(0, index)
+							setPath(next)
+							if (room) void loadFolders(room.id, next.at(-1)?.id)
+						}}
+					>
+						{name}
+					</button>
+				))}
+			</nav>
+			<section className='toolbar'>
+				<h2>{path.at(-1)?.name ?? 'Root folders'}</h2>
+				<button onClick={addFolder}>New folder</button>
+			</section>
+			{loading ? (
+				<p>Loading folders…</p>
+			) : folders.length === 0 ? (
+				<p className='empty'>
+					This folder is empty. Create a folder to get started.
+				</p>
+			) : (
+				<ul className='folder-list'>
+					{folders.map(folder => (
+						<li key={folder.id}>
+							<button
+								className='folder'
+								onClick={() => {
+									setPath([...path, folder])
+									if (room) void loadFolders(room.id, folder.id)
+								}}
+							>
+								📁 <span>{folder.name}</span>
+							</button>
+							<span>
+								<button onClick={() => void renameFolder(folder)}>
+									Rename
+								</button>
+								<button onClick={() => void deleteFolder(folder)}>
+									Delete
+								</button>
+							</span>
+						</li>
+					))}
+				</ul>
+			)}
+		</main>
+	)
 }

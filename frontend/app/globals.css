@@ -1,3 +1,84 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #f5f7fb; }
-main { max-width: 720px; margin: 10rem auto; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgb(23 32 51 / 10%); }
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	color: #172033;
+	background: #f5f7fb;
+}
+main {
+	max-width: 720px;
+	margin: 5rem auto;
+	padding: 2rem;
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 8px 30px rgb(23 32 51 / 10%);
+}
+button {
+	border: 0;
+	border-radius: 7px;
+	padding: 0.55rem 0.8rem;
+	cursor: pointer;
+	color: #20304a;
+	background: #e8eef8;
+}
+header,
+.toolbar,
+.folder-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+h1,
+h2 {
+	margin: 0.2rem 0 1rem;
+}
+h2 {
+	font-size: 1.1rem;
+}
+.eyebrow {
+	color: #5475a8;
+	font-size: 0.75rem;
+	letter-spacing: 0.12em;
+	margin: 0;
+}
+.breadcrumbs {
+	display: flex;
+	gap: 0.25rem;
+	flex-wrap: wrap;
+	margin: 1.5rem 0;
+}
+.breadcrumbs button {
+	background: transparent;
+	padding: 0.2rem 0.35rem;
+}
+.folder-list {
+	list-style: none;
+	padding: 0;
+	border-top: 1px solid #e6eaf0;
+}
+.folder-list li {
+	padding: 0.85rem 0;
+	border-bottom: 1px solid #e6eaf0;
+}
+.folder-list li span:last-child {
+	display: flex;
+	gap: 0.35rem;
+}
+.folder {
+	background: transparent;
+	font-size: 1rem;
+}
+.empty {
+	color: #667085;
+	padding: 2rem 0;
+	text-align: center;
+}
+.error {
+	color: #b42318;
+	background: #fff0ee;
+	padding: 0.75rem;
+	border-radius: 7px;
+}
