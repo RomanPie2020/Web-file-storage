@@ -4,19 +4,28 @@ import { HealthController } from './health/health.controller';
 import * as Joi from 'joi';
 import { HealthService } from './health/health.service';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: ['../.env', '.env'], validationSchema: Joi.object({
-    PORT: Joi.number().port().default(3001),
-    FRONTEND_ORIGIN: Joi.string().uri().default('http://localhost:3000'),
-    SUPABASE_URL: Joi.string().uri().allow('').optional(),
-    SUPABASE_ANON_KEY: Joi.string().allow('').optional(),
-    SUPABASE_SERVICE_ROLE_KEY: Joi.string().allow('').optional(),
-    DATABASE_URL: Joi.string().allow('').optional(),
-    SUPABASE_JWT_ISSUER: Joi.string().uri().allow('').optional(),
-    SUPABASE_JWT_AUDIENCE: Joi.string().allow('').optional(),
-    SUPABASE_JWKS_URL: Joi.string().uri().allow('').optional(),
-  }) }), AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['../.env', '.env'],
+      validationSchema: Joi.object({
+        PORT: Joi.number().port().default(3001),
+        FRONTEND_ORIGIN: Joi.string().uri().default('http://localhost:3000'),
+        SUPABASE_URL: Joi.string().uri().allow('').optional(),
+        SUPABASE_ANON_KEY: Joi.string().allow('').optional(),
+        SUPABASE_SERVICE_ROLE_KEY: Joi.string().allow('').optional(),
+        DATABASE_URL: Joi.string().allow('').optional(),
+        SUPABASE_JWT_ISSUER: Joi.string().uri().allow('').optional(),
+        SUPABASE_JWT_AUDIENCE: Joi.string().allow('').optional(),
+        SUPABASE_JWKS_URL: Joi.string().uri().allow('').optional(),
+      }),
+    }),
+    PrismaModule,
+    AuthModule,
+  ],
   controllers: [HealthController],
   providers: [HealthService],
 })

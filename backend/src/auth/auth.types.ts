@@ -11,6 +11,8 @@ export interface AuthenticatedRequest {
   user?: AuthenticatedUser;
 }
 
+// Express uses a namespace for request declaration merging.
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -18,3 +20,4 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */

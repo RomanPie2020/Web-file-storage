@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ShareResourceType {
+  DATA_ROOM
+  FOLDER
+  FILE
+}
+
+enum ShareType {
+  PUBLIC
+  USER
+}
+
+enum ShareRole {
+  VIEWER
+  EDITOR
+}
+
+model DataRoom {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  folders Folder[]
+  files   File[]
+
+  @@index([ownerId])
+  @@map("data_rooms")
+}
+
+model Folder {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dataRoomId     String   @map("data_room_id") @db.Uuid
+  parentId       String?  @map("parent_id") @db.Uuid
+  name           String
+  normalizedName String   @map("normalized_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  dataRoom DataRoom @relation(fields: [dataRoomId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderHierarchy")
+  files    File[]
+
+  @@index([dataRoomId])
+  @@index([parentId])
+  @@index([dataRoomId, parentId, normalizedName])
+  @@map("folders")
+}
+
+model File {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dataRoomId     String   @map("data_room_id") @db.Uuid
+  folderId       String?  @map("folder_id") @db.Uuid
+  ownerId        String   @map("owner_id") @db.Uuid
+  name           String
+  normalizedName String   @map("normalized_name")
+  sizeBytes      BigInt   @map("size_bytes")
+  mimeType       String   @map("mime_type")
+  storagePath    String   @unique @map("storage_path")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  dataRoom DataRoom @relation(fields: [dataRoomId], references: [id], onDelete: Cascade)
+  folder   Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([dataRoomId])
+  @@index([folderId, createdAt, id])
+  @@index([dataRoomId, folderId, normalizedName])
+  @@map("files")
+}
+
+model Share {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resourceType     ShareResourceType @map("resource_type")
+  resourceId       String            @map("resource_id") @db.Uuid
+  shareType        ShareType         @map("share_type")
+  sharedWithUserId String?           @map("shared_with_user_id") @db.Uuid
+  publicToken      String?           @unique @map("public_token")
+  role             ShareRole         @default(VIEWER)
+  revokedAt        DateTime?         @map("revoked_at")
+  expiresAt        DateTime?         @map("expires_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  @@index([resourceType, resourceId, revokedAt])
+  @@index([sharedWithUserId, revokedAt])
+  @@map("shares")
+}
