@@ -1,6 +1,12 @@
 * {
 	box-sizing: border-box;
 }
+:root {
+	--ink: #172033;
+	--muted: #667085;
+	--line: #e6eaf0;
+	--accent: #315cce;
+}
 body {
 	margin: 0;
 	font-family: Arial, sans-serif;
@@ -22,6 +28,82 @@ button {
 	cursor: pointer;
 	color: #20304a;
 	background: #e8eef8;
+}
+button:hover {
+	filter: brightness(0.97);
+}
+.dialog-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 10;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	background: rgb(23 32 51 / 45%);
+}
+.dialog {
+	width: min(100%, 480px);
+	padding: 1.25rem;
+	border-radius: 14px;
+	background: white;
+	box-shadow: 0 20px 60px rgb(23 32 51 / 25%);
+}
+.dialog-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.dialog-header h2 {
+	margin: 0 0 1rem;
+}
+.dialog form {
+	display: grid;
+	gap: 0.8rem;
+}
+.dialog input,
+.dialog select {
+	width: 100%;
+	padding: 0.7rem;
+	border: 1px solid #cbd5e1;
+	border-radius: 7px;
+	font: inherit;
+}
+.dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 0.4rem;
+}
+.primary {
+	color: white;
+	background: var(--accent);
+}
+.danger {
+	color: #b42318;
+	background: #fff0ee;
+}
+.icon-button {
+	padding: 0.15rem 0.45rem;
+	background: transparent;
+	font-size: 1.2rem;
+}
+.toast {
+	position: fixed;
+	right: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 20;
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	max-width: 360px;
+	padding: 0.8rem 1rem;
+	border-radius: 9px;
+	color: white;
+	background: #172033;
+	box-shadow: 0 8px 24px rgb(23 32 51 / 25%);
+}
+.toast .icon-button {
+	color: white;
 }
 .upload-dropzone {
 	border: 1px dashed #7ca58a;

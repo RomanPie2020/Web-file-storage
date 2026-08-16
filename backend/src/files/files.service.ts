@@ -26,6 +26,7 @@ export class FilesService {
     const room = await this.prisma.dataRoom.findFirst({ where: { id: roomId, ownerId: userId }, select: { id: true } })
     if (!room) throw new NotFoundException('Data Room was not found')
     if (folderId) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(folderId)) throw new BadRequestException('Destination folder must be a valid folder')
       const folder = await this.prisma.folder.findFirst({ where: { id: folderId, dataRoomId: roomId }, select: { id: true } })
       if (!folder) throw new NotFoundException('Folder was not found')
     }
