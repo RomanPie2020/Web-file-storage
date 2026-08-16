@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { DataRoomsModule } from './data-rooms/data-rooms.module';
 import { FilesModule } from './files/files.module';
+import { SharingModule } from './sharing/sharing.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FilesModule } from './files/files.module';
     AuthModule,
     DataRoomsModule,
     FilesModule,
+    SharingModule,
   ],
   controllers: [HealthController],
   providers: [HealthService],

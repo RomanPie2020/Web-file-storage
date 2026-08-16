@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { FilesController } from './files.controller'
 import { FilesService } from './files.service'
+import { SharingModule } from '../sharing/sharing.module'
 
-@Module({ controllers: [FilesController], providers: [FilesService] })
+@Module({ imports: [SharingModule], controllers: [FilesController], providers: [FilesService] })
 export class FilesModule {}

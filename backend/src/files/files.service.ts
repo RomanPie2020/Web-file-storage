@@ -9,6 +9,7 @@ import { Prisma, File as FileRecord } from '@prisma/client';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { SharingService } from '../sharing/sharing.service';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const SIGNED_URL_LIFETIME_SECONDS = 5 * 60;
@@ -19,6 +20,7 @@ export class FilesService {
   private readonly bucket: string;
   constructor(
     private readonly prisma: PrismaService,
+    private readonly sharing: SharingService,
     config: ConfigService,
   ) {
     this.bucket = config.get<string>('SUPABASE_STORAGE_BUCKET', 'data-room-pdfs');
@@ -59,6 +61,7 @@ export class FilesService {
   }
 
   async list(userId: string, roomId: string, folderId?: string) {
+    await this.sharing.assertAccess(userId, { resourceType: folderId ? 'FOLDER' as any : 'DATA_ROOM' as any, resourceId: folderId ?? roomId });
     await this.folder(userId, roomId, folderId);
     const files = await this.prisma.file.findMany({
       where: { ownerId: userId, dataRoomId: roomId, folderId: folderId ?? null },
@@ -148,6 +151,7 @@ export class FilesService {
     return file;
   }
   async preview(userId: string, roomId: string, fileId: string) {
+    await this.sharing.assertAccess(userId, { resourceType: 'FILE' as any, resourceId: fileId });
     const file = await this.owned(userId, roomId, fileId);
     if (file.mimeType !== 'application/pdf')
       throw new BadRequestException('Preview unavailable for this file type');

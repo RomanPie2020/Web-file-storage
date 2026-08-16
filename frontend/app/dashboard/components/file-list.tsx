@@ -1,4 +1,5 @@
 import type { Folder, RoomFile } from '../types';
+import { ShareButton } from './share-button';
 
 type Props = {
   folders: Folder[];
@@ -24,6 +25,7 @@ export function FileList({ folders, files, onOpen, onOpenFolder, onPreview }: Pr
               <button type="button" onClick={() => onOpen('rename-folder', folder)}>
                 Rename
               </button>
+              <ShareButton resourceType="FOLDER" resourceId={folder.id} />
               <button
                 type="button"
                 className="danger"
@@ -48,6 +50,7 @@ export function FileList({ folders, files, onOpen, onOpenFolder, onPreview }: Pr
               <button type="button" onClick={() => onOpen('move', file)}>
                 Move
               </button>
+              <ShareButton resourceType="FILE" resourceId={file.id} />
               <button type="button" className="danger" onClick={() => onOpen('delete-file', file)}>
                 Delete
               </button>

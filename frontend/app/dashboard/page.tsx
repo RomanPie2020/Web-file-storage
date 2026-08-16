@@ -119,6 +119,7 @@ export default function DashboardPage() {
     <main className="app-shell">
       <DashboardHeader
         roomName={room.name}
+        roomId={room.id}
         onSignOut={() => {
           void supabase.auth.signOut();
           router.replace('/');
