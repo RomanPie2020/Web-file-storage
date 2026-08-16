@@ -40,6 +40,15 @@ export function AuthPanel() {
     setMessage('Signed out.');
   }
 
+  async function signInWithGoogle() {
+    setMessage('');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    });
+    if (error) setMessage(error.message);
+  }
+
   if (userEmail) {
     return <section><p>Signed in as {userEmail}</p><button onClick={signOut}>Sign out</button></section>;
   }
@@ -49,5 +58,6 @@ export function AuthPanel() {
     <label>Password <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required /></label>
     <button type="submit" disabled={loading}>{loading ? 'Working…' : 'Sign in'}</button>
   </form><button type="button" onClick={signUp} disabled={loading}>Create account</button>
+  <button type="button" onClick={signInWithGoogle} disabled={loading}>Continue with Google</button>
   {message && <p role="status">{message}</p>}</section>;
 }
