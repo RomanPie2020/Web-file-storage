@@ -12,12 +12,18 @@ type RoomFile = {
 	sizeBytes: string | number
 	folderId: string | null
 }
+type UploadItem = {
+	id: string
+	file: File
+	status: 'queued' | 'uploading' | 'success' | 'error'
+	error?: string
+}
 export default function DashboardPage() {
 	const router = useRouter()
 	const [room, setRoom] = useState<Room | null>(null)
 	const [folders, setFolders] = useState<Folder[]>([])
 	const [files, setFiles] = useState<RoomFile[]>([])
-	const [uploading, setUploading] = useState<string[]>([])
+	const [uploads, setUploads] = useState<UploadItem[]>([])
 	const [dragging, setDragging] = useState(false)
 	const [path, setPath] = useState<Folder[]>([])
 	const [loading, setLoading] = useState(true)
@@ -43,32 +49,58 @@ export default function DashboardPage() {
 			setLoading(false)
 		}
 	}
-	async function uploadFiles(list: FileList | null) {
-		if (!room || !list) return
-		const queue = Array.from(list).filter(
-			file => !uploading.includes(file.name),
+	async function uploadOne(item: UploadItem) {
+		if (!room) return
+		setUploads(current =>
+			current.map(entry =>
+				entry.id === item.id
+					? { ...entry, status: 'uploading', error: undefined }
+					: entry,
+			),
 		)
-		setUploading(queue.map(file => file.name))
-		for (let index = 0; index < queue.length; index += 3) {
-			await Promise.all(
-				queue.slice(index, index + 3).map(async file => {
-					try {
-						const body = new FormData()
-						body.append('file', file)
-						await apiRequest(
-							`/data-rooms/${room.id}/files${parentId ? `?folderId=${parentId}` : ''}`,
-							{ method: 'POST', body },
-						)
-					} catch (error) {
-						setError(
-							`${file.name}: ${error instanceof Error ? error.message : 'Upload failed.'}`,
-						)
-					}
-				}),
+		try {
+			const body = new FormData()
+			body.append('file', item.file)
+			await apiRequest(
+				`/data-rooms/${room.id}/files${parentId ? `?folderId=${parentId}` : ''}`,
+				{ method: 'POST', body },
+			)
+			setUploads(current =>
+				current.map(entry =>
+					entry.id === item.id ? { ...entry, status: 'success' } : entry,
+				),
+			)
+		} catch (error) {
+			setUploads(current =>
+				current.map(entry =>
+					entry.id === item.id
+						? {
+								...entry,
+								status: 'error',
+								error:
+									error instanceof Error ? error.message : 'Upload failed.',
+							}
+						: entry,
+				),
 			)
 		}
-		setUploading([])
+	}
+	async function uploadFiles(list: FileList | null) {
+		if (!room || !list) return
+		const queue = Array.from(list).map(file => ({
+			id: crypto.randomUUID(),
+			file,
+			status: 'queued' as const,
+		}))
+		setUploads(current => [...current, ...queue])
+		for (let index = 0; index < queue.length; index += 3) {
+			await Promise.all(queue.slice(index, index + 3).map(uploadOne))
+		}
 		await loadFolders(room.id, parentId)
+	}
+	async function retryUpload(item: UploadItem) {
+		await uploadOne(item)
+		if (room) await loadFolders(room.id, parentId)
 	}
 	function handleDrop(event: DragEvent<HTMLLabelElement>) {
 		event.preventDefault()
@@ -205,7 +237,27 @@ export default function DashboardPage() {
 					/>
 				</label>
 			</section>
-			{uploading.length > 0 && <p>Uploading {uploading.length} file(s)…</p>}
+			{uploads.length > 0 && (
+				<ul className='upload-status' aria-live='polite'>
+					{uploads.map(item => (
+						<li key={item.id}>
+							<span>{item.file.name}</span>
+							<span>
+								{item.status === 'queued'
+									? 'Waiting…'
+									: item.status === 'uploading'
+										? 'Uploading…'
+										: item.status === 'success'
+											? 'Uploaded'
+											: (item.error ?? 'Upload failed')}
+								{item.status === 'error' && (
+									<button onClick={() => void retryUpload(item)}>Retry</button>
+								)}
+							</span>
+						</li>
+					))}
+				</ul>
+			)}
 			{loading ? (
 				<p>Loading folders…</p>
 			) : folders.length === 0 && files.length === 0 ? (
