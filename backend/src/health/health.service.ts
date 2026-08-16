@@ -26,7 +26,9 @@ export class HealthService {
       await pool.query('select 1');
       return { ok: true };
     } catch (error) {
-      this.logger.warn(`Database health check failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      this.logger.warn(
+        `Database health check failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
       return { ok: false, error: 'Database connection failed' };
     } finally {
       await pool.end();
@@ -46,7 +48,9 @@ export class HealthService {
       }
       return { ok: true, bucket };
     } catch (error) {
-      this.logger.warn(`Storage health check failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      this.logger.warn(
+        `Storage health check failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
       return { ok: false, error: 'Storage connection failed' };
     }
   }
