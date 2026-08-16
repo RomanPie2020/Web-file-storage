@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase-browser';
 import { DialogState, Folder, MutationVariables, Room, RoomFile } from './types';
 import { executeMutation } from './mutations';
+import { buildDialogMutation } from './dialog-actions';
 import { fetchAllFolders, fetchListing, fetchRoom } from './queries';
 import { useFileUpload } from './hooks/use-file-upload';
 import { Toast } from '../../components/ui/toast';
@@ -77,45 +78,23 @@ export default function DashboardPage() {
   function submitDialog(event: React.FormEvent) {
     event.preventDefault();
     if (!room || !dialog) return;
-    const item = dialog.item;
-    const name = value.trim();
-    if (dialog.kind === 'folder')
-      mutation.mutate({
-        url: `/data-rooms/${room.id}/folders`,
-        method: 'POST',
-        body: { name, parentId },
-      });
-    else if (dialog.kind === 'rename-folder')
-      mutation.mutate({
-        url: `/data-rooms/${room.id}/folders/${(item as Folder).id}`,
-        method: 'PATCH',
-        body: { name },
-      });
-    else if (dialog.kind === 'rename-file')
-      mutation.mutate({
-        url: `/data-rooms/${room.id}/files/${(item as RoomFile).id}`,
-        method: 'PATCH',
-        body: { name },
-      });
-    else if (dialog.kind === 'move') {
+    const destination = value === ROOT_DESTINATION ? null : value;
+    if (dialog.kind === 'move') {
       setPath(
         value === ROOT_DESTINATION
           ? []
           : [...path, ...folders.filter((folder) => folder.id === value)],
       );
-      mutation.mutate({
-        url: `/data-rooms/${room.id}/files/${(item as RoomFile).id}`,
-        method: 'PATCH',
-        body: { folderId: value === ROOT_DESTINATION ? null : value },
-      });
-    } else
-      mutation.mutate({
-        url:
-          dialog.kind === 'delete-folder'
-            ? `/data-rooms/${room.id}/folders/${(item as Folder).id}`
-            : `/data-rooms/${room.id}/files/${(item as RoomFile).id}`,
-        method: 'DELETE',
-      });
+    }
+    mutation.mutate(
+      buildDialogMutation({
+        roomId: room.id,
+        dialog,
+        name: value.trim(),
+        parentId,
+        destination,
+      }),
+    );
   }
 
   if (roomQuery.isLoading || !room)
