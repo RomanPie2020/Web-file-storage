@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
+import type { DragEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase-browser'
 import { apiRequest } from '../../lib/api'
@@ -17,6 +18,7 @@ export default function DashboardPage() {
 	const [folders, setFolders] = useState<Folder[]>([])
 	const [files, setFiles] = useState<RoomFile[]>([])
 	const [uploading, setUploading] = useState<string[]>([])
+	const [dragging, setDragging] = useState(false)
 	const [path, setPath] = useState<Folder[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
@@ -67,6 +69,11 @@ export default function DashboardPage() {
 		}
 		setUploading([])
 		await loadFolders(room.id, parentId)
+	}
+	function handleDrop(event: DragEvent<HTMLLabelElement>) {
+		event.preventDefault()
+		setDragging(false)
+		void uploadFiles(event.dataTransfer.files)
 	}
 	useEffect(() => {
 		let active = true
@@ -175,8 +182,20 @@ export default function DashboardPage() {
 			<section className='toolbar'>
 				<h2>{path.at(-1)?.name ?? 'Root folders'}</h2>
 				<button onClick={addFolder}>New folder</button>
-				<label className='upload-button'>
-					Upload PDFs
+				<label
+					className={`upload-dropzone${dragging ? ' is-dragging' : ''}`}
+					onDragEnter={event => {
+						event.preventDefault()
+						setDragging(true)
+					}}
+					onDragOver={event => event.preventDefault()}
+					onDragLeave={event => {
+						event.preventDefault()
+						setDragging(false)
+					}}
+					onDrop={handleDrop}
+				>
+					<span>Drop PDFs here or click to browse</span>
 					<input
 						type='file'
 						accept='application/pdf,.pdf'

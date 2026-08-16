@@ -23,7 +23,8 @@ button {
 	color: #20304a;
 	background: #e8eef8;
 }
-.upload-button { border-radius: 7px; padding: 0.55rem 0.8rem; cursor: pointer; color: #20304a; background: #d9f2e3; }
+.upload-dropzone { border: 1px dashed #7ca58a; border-radius: 7px; padding: 0.55rem 0.8rem; cursor: pointer; color: #20304a; background: #d9f2e3; }
+.upload-dropzone.is-dragging { background: #bde8cc; border-color: #2f7d48; }
 header,
 .toolbar,
 .folder-list li {
