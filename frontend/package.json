@@ -28,7 +28,7 @@
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.5.4",
     "dotenv-cli": "^8.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^10.8.1",
     "eslint-config-next": "^14.2.18",
     "eslint-config-prettier": "^9.1.0",
     "postcss": "^8.5.26",
