@@ -7,6 +7,16 @@ export type RoomFile = {
   name: string;
   sizeBytes: string | number;
   folderId: string | null;
+  mimeType?: string;
+};
+
+export type FilePreview = {
+  url: string;
+  downloadUrl: string;
+  name: string;
+  sizeBytes: string;
+  mimeType: string;
+  expiresInSeconds: number;
 };
 
 export type UploadItem = {

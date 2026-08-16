@@ -48,6 +48,26 @@ button:hover {
 	background: white;
 	box-shadow: 0 20px 60px rgb(23 32 51 / 25%);
 }
+
+.preview-dialog {
+  width: min(900px, 95vw);
+}
+
+.pdf-preview {
+  display: block;
+  width: 100%;
+  height: min(70vh, 720px);
+  border: 1px solid #d7dce5;
+  margin: 1rem 0;
+}
+
+.file-name {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
 .dialog-header {
 	display: flex;
 	justify-content: space-between;

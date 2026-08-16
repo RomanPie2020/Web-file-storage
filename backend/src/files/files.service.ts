@@ -11,6 +11,7 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const SIGNED_URL_LIFETIME_SECONDS = 5 * 60;
 
 @Injectable()
 export class FilesService {
@@ -145,6 +146,31 @@ export class FilesService {
     });
     if (!file) throw new NotFoundException('File was not found');
     return file;
+  }
+  async preview(userId: string, roomId: string, fileId: string) {
+    const file = await this.owned(userId, roomId, fileId);
+    if (file.mimeType !== 'application/pdf')
+      throw new BadRequestException('Preview unavailable for this file type');
+    const result = await this.storage.storage
+      .from(this.bucket)
+      .createSignedUrl(file.storagePath, SIGNED_URL_LIFETIME_SECONDS, {
+        download: false,
+      });
+    const download = await this.storage.storage
+      .from(this.bucket)
+      .createSignedUrl(file.storagePath, SIGNED_URL_LIFETIME_SECONDS, {
+        download: file.name,
+      });
+    if (result.error || !result.data?.signedUrl || download.error || !download.data?.signedUrl)
+      throw new BadRequestException('Preview unavailable right now');
+    return {
+      url: result.data.signedUrl,
+      downloadUrl: download.data.signedUrl,
+      name: file.name,
+      sizeBytes: file.sizeBytes.toString(),
+      mimeType: file.mimeType,
+      expiresInSeconds: SIGNED_URL_LIFETIME_SECONDS,
+    };
   }
   async rename(userId: string, roomId: string, fileId: string, rawName: string) {
     const file = await this.owned(userId, roomId, fileId),

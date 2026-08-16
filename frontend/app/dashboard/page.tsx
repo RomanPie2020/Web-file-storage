@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase-browser';
-import { DialogState, Folder, MutationVariables, Room, RoomFile } from './types';
+import { apiRequest } from '../../lib/api';
+import { DialogState, FilePreview, Folder, MutationVariables, Room, RoomFile } from './types';
 import { executeMutation } from './mutations';
 import { buildDialogMutation } from './dialog-actions';
 import { fetchAllFolders, fetchListing, fetchRoom } from './queries';
@@ -15,6 +16,7 @@ import { DashboardToolbar } from './components/dashboard-toolbar';
 import { FileDialog } from './components/file-dialog';
 import { FileList } from './components/file-list';
 import { UploadStatus } from './components/upload-status';
+import { FilePreviewDialog } from './components/file-preview-dialog';
 
 const ROOT_DESTINATION = '__root__';
 
@@ -26,6 +28,8 @@ export default function DashboardPage() {
   const [toast, setToast] = useState('');
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [value, setValue] = useState('');
+  const [preview, setPreview] = useState<FilePreview | null>(null);
+  const [previewError, setPreviewError] = useState('');
   const parentId = path.at(-1)?.id;
   const roomQuery = useQuery({ queryKey: ['room'], queryFn: fetchRoom });
   const listing = useQuery({
@@ -96,6 +100,14 @@ export default function DashboardPage() {
       }),
     );
   }
+  async function openPreview(file: RoomFile) {
+    setPreviewError('');
+    try {
+      setPreview(await apiRequest<FilePreview>(`/data-rooms/${room!.id}/files/${file.id}/preview`));
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : 'Preview unavailable');
+    }
+  }
 
   if (roomQuery.isLoading || !room)
     return (
@@ -140,6 +152,7 @@ export default function DashboardPage() {
           folders={folders}
           files={files}
           onOpen={openDialog}
+          onPreview={openPreview}
           onOpenFolder={(folder) => setPath([...path, folder])}
         />
       )}
@@ -153,6 +166,8 @@ export default function DashboardPage() {
           onSubmit={submitDialog}
         />
       )}
+      {preview && <FilePreviewDialog preview={preview} onClose={() => setPreview(null)} />}
+      {previewError && <Toast onClose={() => setPreviewError('')}>{previewError}</Toast>}
     </main>
   );
 }

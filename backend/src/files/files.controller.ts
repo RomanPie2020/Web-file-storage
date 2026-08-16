@@ -53,6 +53,13 @@ export class FilesController {
     const folderId = body.folderId && body.folderId !== 'root' ? body.folderId : undefined;
     return this.files.move(this.user(req), roomId, fileId, folderId);
   }
+  @Get(':fileId/preview') preview(
+    @Req() req: Request,
+    @Param('roomId', ParseUUIDPipe) roomId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+  ) {
+    return this.files.preview(this.user(req), roomId, fileId);
+  }
   @Delete(':fileId') delete(
     @Req() req: Request,
     @Param('roomId', ParseUUIDPipe) roomId: string,

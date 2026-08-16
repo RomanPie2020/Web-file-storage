@@ -8,9 +8,10 @@ type Props = {
     item: Folder | RoomFile,
   ) => void;
   onOpenFolder: (folder: Folder) => void;
+  onPreview: (file: RoomFile) => void;
 };
 
-export function FileList({ folders, files, onOpen, onOpenFolder }: Props) {
+export function FileList({ folders, files, onOpen, onOpenFolder, onPreview }: Props) {
   return (
     <>
       <ul className="folder-list">
@@ -37,7 +38,9 @@ export function FileList({ folders, files, onOpen, onOpenFolder }: Props) {
       <ul className="folder-list">
         {files.map((file) => (
           <li key={file.id}>
-            <span>📄 {file.name}</span>
+            <button type="button" className="file-name" onClick={() => onPreview(file)}>
+              📄 {file.name}
+            </button>
             <span>
               <button type="button" onClick={() => onOpen('rename-file', file)}>
                 Rename
