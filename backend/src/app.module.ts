@@ -5,6 +5,8 @@ import * as Joi from 'joi';
 import { HealthService } from './health/health.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { DataRoomsModule } from './data-rooms/data-rooms.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -21,10 +23,13 @@ import { PrismaModule } from './prisma/prisma.module';
         SUPABASE_JWT_ISSUER: Joi.string().uri().allow('').optional(),
         SUPABASE_JWT_AUDIENCE: Joi.string().allow('').optional(),
         SUPABASE_JWKS_URL: Joi.string().uri().allow('').optional(),
+        SUPABASE_STORAGE_BUCKET: Joi.string().default('data-room-pdfs'),
       }),
     }),
     PrismaModule,
     AuthModule,
+    DataRoomsModule,
+    FilesModule,
   ],
   controllers: [HealthController],
   providers: [HealthService],

@@ -5,10 +5,18 @@ import { supabase } from '../../lib/supabase-browser'
 import { apiRequest } from '../../lib/api'
 type Room = { id: string; name: string }
 type Folder = { id: string; name: string; parentId: string | null }
+type RoomFile = {
+	id: string
+	name: string
+	sizeBytes: string | number
+	folderId: string | null
+}
 export default function DashboardPage() {
 	const router = useRouter()
 	const [room, setRoom] = useState<Room | null>(null)
 	const [folders, setFolders] = useState<Folder[]>([])
+	const [files, setFiles] = useState<RoomFile[]>([])
+	const [uploading, setUploading] = useState<string[]>([])
 	const [path, setPath] = useState<Folder[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
@@ -22,11 +30,43 @@ export default function DashboardPage() {
 					`/data-rooms/${roomId}/folders${parent ? `?parentId=${parent}` : ''}`,
 				),
 			)
+			setFiles(
+				await apiRequest<RoomFile[]>(
+					`/data-rooms/${roomId}/files${parent ? `?folderId=${parent}` : ''}`,
+				),
+			)
 		} catch {
 			setError('Unable to load folders.')
 		} finally {
 			setLoading(false)
 		}
+	}
+	async function uploadFiles(list: FileList | null) {
+		if (!room || !list) return
+		const queue = Array.from(list).filter(
+			file => !uploading.includes(file.name),
+		)
+		setUploading(queue.map(file => file.name))
+		for (let index = 0; index < queue.length; index += 3) {
+			await Promise.all(
+				queue.slice(index, index + 3).map(async file => {
+					try {
+						const body = new FormData()
+						body.append('file', file)
+						await apiRequest(
+							`/data-rooms/${room.id}/files${parentId ? `?folderId=${parentId}` : ''}`,
+							{ method: 'POST', body },
+						)
+					} catch (error) {
+						setError(
+							`${file.name}: ${error instanceof Error ? error.message : 'Upload failed.'}`,
+						)
+					}
+				}),
+			)
+		}
+		setUploading([])
+		await loadFolders(room.id, parentId)
 	}
 	useEffect(() => {
 		let active = true
@@ -135,10 +175,21 @@ export default function DashboardPage() {
 			<section className='toolbar'>
 				<h2>{path.at(-1)?.name ?? 'Root folders'}</h2>
 				<button onClick={addFolder}>New folder</button>
+				<label className='upload-button'>
+					Upload PDFs
+					<input
+						type='file'
+						accept='application/pdf,.pdf'
+						multiple
+						hidden
+						onChange={event => void uploadFiles(event.target.files)}
+					/>
+				</label>
 			</section>
+			{uploading.length > 0 && <p>Uploading {uploading.length} file(s)…</p>}
 			{loading ? (
 				<p>Loading folders…</p>
-			) : folders.length === 0 ? (
+			) : folders.length === 0 && files.length === 0 ? (
 				<p className='empty'>
 					This folder is empty. Create a folder to get started.
 				</p>
@@ -160,6 +211,84 @@ export default function DashboardPage() {
 									Rename
 								</button>
 								<button onClick={() => void deleteFolder(folder)}>
+									Delete
+								</button>
+							</span>
+						</li>
+					))}
+				</ul>
+			)}
+			{files.length > 0 && (
+				<ul className='folder-list'>
+					{files.map(file => (
+						<li key={file.id}>
+							<span>📄 {file.name}</span>
+							<span>
+								<button
+									onClick={() => {
+										const name = window.prompt('New file name', file.name)
+										if (name && room)
+											void apiRequest(
+												`/data-rooms/${room.id}/files/${file.id}`,
+												{ method: 'PATCH', body: JSON.stringify({ name }) },
+											)
+												.then(() => loadFolders(room.id, parentId))
+												.catch(error =>
+													setError(
+														error instanceof Error
+															? error.message
+															: 'Could not rename that file.',
+													),
+												)
+									}}
+								>
+									Rename
+								</button>
+								<button
+									onClick={() => {
+										const destination = window.prompt(
+											'Destination folder UUID (leave empty for the room root)',
+											parentId ?? '',
+										)
+										if (destination !== null && room)
+											void apiRequest(
+												`/data-rooms/${room.id}/files/${file.id}`,
+												{
+													method: 'PATCH',
+													body: JSON.stringify({
+														folderId: destination.trim(),
+													}),
+												},
+											)
+												.then(() => loadFolders(room.id, parentId))
+												.catch(error =>
+													setError(
+														error instanceof Error
+															? error.message
+															: 'Could not move that file.',
+													),
+												)
+									}}
+								>
+									Move
+								</button>
+								<button
+									onClick={() => {
+										if (!room || !window.confirm(`Delete “${file.name}”?`))
+											return
+										void apiRequest(`/data-rooms/${room.id}/files/${file.id}`, {
+											method: 'DELETE',
+										})
+											.then(() => loadFolders(room.id, parentId))
+											.catch(error =>
+												setError(
+													error instanceof Error
+														? error.message
+														: 'Could not delete that file.',
+												),
+											)
+									}}
+								>
 									Delete
 								</button>
 							</span>

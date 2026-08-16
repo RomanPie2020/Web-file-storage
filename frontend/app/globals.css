@@ -23,6 +23,7 @@ button {
 	color: #20304a;
 	background: #e8eef8;
 }
+.upload-button { border-radius: 7px; padding: 0.55rem 0.8rem; cursor: pointer; color: #20304a; background: #d9f2e3; }
 header,
 .toolbar,
 .folder-list li {
