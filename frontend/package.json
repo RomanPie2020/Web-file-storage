@@ -2,7 +2,7 @@
   "name": "acme-data-room-frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {"dev":"next dev","build":"next build","start":"next start","lint":"next lint","format":"prettier --write \"app/**/*.{ts,tsx,css}\"","format:check":"prettier --check \"app/**/*.{ts,tsx,css}\""},
+  "scripts": {"dev":"dotenv -e ../.env -- next dev","build":"dotenv -e ../.env -- next build","start":"dotenv -e ../.env -- next start","lint":"next lint","format":"prettier --write \"app/**/*.{ts,tsx,css}\"","format:check":"prettier --check \"app/**/*.{ts,tsx,css}\""},
   "dependencies": {"@supabase/ssr":"^0.5.2","@supabase/supabase-js":"^2.49.1","next":"^14.2.18","react":"^18.3.1","react-dom":"^18.3.1"},
-  "devDependencies": {"@types/node":"^22.10.2","@types/react":"^18.3.12","@types/react-dom":"^18.3.1","typescript":"^5.7.2","eslint":"^8.57.1","eslint-config-next":"^14.2.18","eslint-config-prettier":"^9.1.0","prettier":"^3.4.2"}
+  "devDependencies": {"@types/node":"^22.10.2","@types/react":"^18.3.12","@types/react-dom":"^18.3.1","typescript":"^5.7.2","eslint":"^8.57.1","eslint-config-next":"^14.2.18","eslint-config-prettier":"^9.1.0","prettier":"^3.4.2","dotenv-cli":"^8.0.0"}
 }

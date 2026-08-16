@@ -6,7 +6,7 @@ import { HealthService } from './health/health.service';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: Joi.object({
+  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: ['../.env', '.env'], validationSchema: Joi.object({
     PORT: Joi.number().port().default(3001),
     FRONTEND_ORIGIN: Joi.string().uri().default('http://localhost:3000'),
     SUPABASE_URL: Joi.string().uri().allow('').optional(),
