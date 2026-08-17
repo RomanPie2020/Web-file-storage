@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import styles from './landing.module.css';
+import { AuthErrorNotice } from './auth-error-notice';
 
 export default function Home() {
   return (
     <main className={styles.page}>
+      <AuthErrorNotice />
       <nav className={styles.nav}>
         <Link className={styles.brand} href="/">
           Acme<span>Data Room</span>

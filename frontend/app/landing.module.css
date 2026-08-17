@@ -56,6 +56,30 @@
   background: white;
   border: 1px solid var(--line);
 }
+.authError {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  color: #b42318;
+  background: #fef3f2;
+  font-weight: 600;
+}
+.authError span {
+  display: grid;
+  flex: 0 0 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #d92d20;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
 .hero {
   max-width: 760px;
   padding: 10rem 0 7rem;
