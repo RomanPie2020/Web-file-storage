@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
   if (roomQuery.isLoading || !room)
     return (
-      <main>
+      <main className="app-shell">
         <p>Loading your Data Room…</p>
       </main>
     );

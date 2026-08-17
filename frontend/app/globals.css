@@ -13,7 +13,7 @@ body {
   color: #172033;
   background: #f5f7fb;
 }
-main {
+.app-shell {
   max-width: 720px;
   margin: 5rem auto;
   padding: 2rem;
