@@ -7,7 +7,9 @@ export const metadata: Metadata = { title: 'Acme Data Room', description: 'Acme 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><QueryProvider>{children}</QueryProvider></body>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }
