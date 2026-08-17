@@ -7,12 +7,21 @@ import {
 } from '@nestjs/common'
 import { DataRoom, Prisma } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
+import { ConfigService } from '@nestjs/config'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { Logger } from '@nestjs/common'
 
 const DEFAULT_DATA_ROOM_NAME = 'My Data Room'
 
 @Injectable()
 export class DataRoomsService {
-	constructor(private readonly prisma: PrismaService) {}
+	private readonly logger = new Logger(DataRoomsService.name)
+	private readonly storage: SupabaseClient
+	private readonly bucket: string
+	constructor(private readonly prisma: PrismaService, config: ConfigService) {
+		this.bucket = config.get<string>('SUPABASE_STORAGE_BUCKET', 'data-room-pdfs')
+		this.storage = createClient(config.getOrThrow('SUPABASE_URL'), config.getOrThrow('SUPABASE_SERVICE_ROLE_KEY'))
+	}
 
 	/**
 	 * Creates a user's root room exactly once. The partial unique index in the
@@ -188,8 +197,25 @@ export class DataRoomsService {
 
 	async deleteFolder(userId: string, roomId: string, folderId: string) {
 		await this.assertFolderInRoom(userId, roomId, folderId)
-		await this.prisma.folder.delete({ where: { id: folderId } })
-		return { deleted: true }
+		const descendants = await this.prisma.$queryRaw<{ storage_path: string }[]>(Prisma.sql`
+			WITH RECURSIVE subtree AS (
+				SELECT id FROM folders WHERE id = ${folderId}::uuid AND data_room_id = ${roomId}::uuid
+				UNION ALL SELECT f.id FROM folders f JOIN subtree s ON f.parent_id = s.id
+			)
+			SELECT storage_path FROM files WHERE folder_id IN (SELECT id FROM subtree)
+		`)
+		const paths = descendants.map((file) => file.storage_path)
+		if (paths.length) {
+			const result = await this.storage.storage.from(this.bucket).remove(paths)
+			if (result.error) throw new BadRequestException(`Storage deletion failed: ${result.error.message}`)
+		}
+		try {
+			await this.prisma.folder.delete({ where: { id: folderId } })
+		} catch (error) {
+			this.logger.error(`Database deletion failed after Storage removal for folder ${folderId}`, error)
+			throw error
+		}
+		return { deleted: true, deletedFiles: paths.length }
 	}
 
 	private async assertFolderInRoom(

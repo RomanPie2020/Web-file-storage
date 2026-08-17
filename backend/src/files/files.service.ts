@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,6 +17,7 @@ const SIGNED_URL_LIFETIME_SECONDS = 5 * 60;
 
 @Injectable()
 export class FilesService {
+  private readonly logger = new Logger(FilesService.name);
   private readonly storage: SupabaseClient;
   private readonly bucket: string;
   constructor(
@@ -231,7 +233,12 @@ export class FilesService {
     const result = await this.storage.storage.from(this.bucket).remove([file.storagePath]);
     if (result.error)
       throw new BadRequestException(`Storage deletion failed: ${result.error.message}`);
-    await this.prisma.file.delete({ where: { id: file.id } });
+    try {
+      await this.prisma.file.delete({ where: { id: file.id } });
+    } catch (error) {
+      this.logger.error(`Database deletion failed after Storage removal for file ${file.id}`, error);
+      throw error;
+    }
     return { deleted: true };
   }
 }

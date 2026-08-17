@@ -30,7 +30,9 @@ export function FileDialog({ dialog, value, folders, onValueChange, onClose, onS
         {dialog.kind.startsWith('delete') ? (
           <p>
             Delete “{(dialog.item as Folder | RoomFile).name}”
-            {dialog.kind === 'delete-folder' ? ' and its contents' : ''}?
+            {dialog.kind === 'delete-folder'
+              ? ' and all descendant folders and files (including their stored PDFs)'
+              : ` (${formatSize((dialog.item as RoomFile).sizeBytes)})`}?
           </p>
         ) : dialog.kind === 'move' ? (
           <select value={value} onChange={(event) => onValueChange(event.target.value)}>
@@ -62,4 +64,12 @@ export function FileDialog({ dialog, value, folders, onValueChange, onClose, onS
       </form>
     </Dialog>
   );
+}
+
+function formatSize(value: string | number) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes)) return 'size unavailable';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

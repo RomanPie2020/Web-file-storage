@@ -1,5 +1,12 @@
 import { supabase } from './supabase-browser';
 
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { data } = await supabase.auth.getSession();
   const headers = new Headers(init.headers);
@@ -17,7 +24,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
       const payload = (await response.json()) as { message?: string | string[] };
       if (payload.message) message = Array.isArray(payload.message) ? payload.message.join(', ') : payload.message;
     } catch { /* Keep the status fallback for non-JSON responses. */ }
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
   return response.json() as Promise<T>;
 }

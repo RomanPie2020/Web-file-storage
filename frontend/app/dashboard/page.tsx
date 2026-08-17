@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase-browser';
-import { apiRequest } from '../../lib/api';
+import { apiRequest, ApiError } from '../../lib/api';
 import { DialogState, FilePreview, Folder, MutationVariables, Room, RoomFile } from './types';
 import { executeMutation } from './mutations';
 import { buildDialogMutation } from './dialog-actions';
@@ -54,7 +54,16 @@ export default function DashboardPage() {
           : 'Changes saved',
       );
     },
-    onError: (error) => setToast(error instanceof Error ? error.message : 'Something went wrong'),
+    onError: (error) => {
+      if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+        setPath((current) => current.slice(0, -1));
+        void client.invalidateQueries({ queryKey: ['listing'] });
+        setToast('That item is no longer available. You were returned to the nearest accessible folder.');
+        setDialog(null);
+        return;
+      }
+      setToast(error instanceof Error ? error.message : 'Something went wrong');
+    },
   });
   const folders = listing.data?.folders ?? [];
   const files = listing.data?.files ?? [];
