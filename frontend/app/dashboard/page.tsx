@@ -88,6 +88,12 @@ export default function DashboardPage() {
     if (upload.uploads.some((item) => item.status === 'success'))
       void client.invalidateQueries({ queryKey: ['listing'] });
   }, [client, upload.uploads]);
+  useEffect(() => {
+    if (listing.error instanceof ApiError && (listing.error.status === 404 || listing.error.status === 403)) {
+      setPath((current) => current.slice(0, -1));
+      setToast('This folder is no longer available. You were returned to the nearest accessible folder.');
+    }
+  }, [listing.error]);
 
   function openDialog(kind: DialogState['kind'], item?: Folder | RoomFile) {
     setDialog({ kind, item });
@@ -121,6 +127,11 @@ export default function DashboardPage() {
     try {
       setPreview(await apiRequest<FilePreview>(`/data-rooms/${room!.id}/files/${file.id}/preview`));
     } catch (error) {
+      if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+        setPath((current) => current.slice(0, -1));
+        setToast('This file is no longer available. You were returned to the nearest accessible folder.');
+        return;
+      }
       setPreviewError(error instanceof Error ? error.message : 'Preview unavailable');
     }
   }
