@@ -1,0 +1,23 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(23 32 51 / 45%);
+}
+.dialog {
+  width: min(900px, 95vw);
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 20px 60px rgb(23 32 51 / 25%);
+}
+.pdf {
+  display: block;
+  width: 100%;
+  height: min(70vh, 720px);
+  border: 1px solid #d7dce5;
+  margin: 1rem 0;
+}

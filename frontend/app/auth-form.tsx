@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase-browser';
+import styles from './auth.module.css';
 
 export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
   const router = useRouter();
@@ -43,18 +44,18 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
     }
   }
   return (
-    <main className="auth-page">
-      <div className="auth-card">
-        <Link className="brand auth-brand" href="/">
+    <main className={styles.page}>
+      <div className={styles.card}>
+        <Link className={styles.brand} href="/">
           Acme<span>Data Room</span>
         </Link>
-        <p className="eyebrow">{isSignUp ? 'WELCOME IN' : 'WELCOME BACK'}</p>
+        <p className={styles.eyebrow}>{isSignUp ? 'WELCOME IN' : 'WELCOME BACK'}</p>
         <h1>{isSignUp ? 'Create your account' : 'Sign in to your room'}</h1>
-        <p className="auth-subtitle">
+        <p className={styles.subtitle}>
           {isSignUp ? 'Set up your secure workspace in a minute.' : 'Pick up where you left off.'}
         </p>
-        <form onSubmit={submit} className="auth-form">
-          <label>
+        <form onSubmit={submit} className={styles.form}>
+          <label className={styles.label}>
             Email address
             <input
               type="email"
@@ -64,7 +65,7 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
               required
             />
           </label>
-          <label>
+          <label className={styles.label}>
             Password
             <input
               type="password"
@@ -76,7 +77,7 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
             />
           </label>
           {isSignUp && (
-            <label>
+            <label className={styles.label}>
               Confirm password
               <input
                 type="password"
@@ -88,22 +89,31 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
               />
             </label>
           )}
-          <button className="button primary large" type="submit" disabled={loading}>
+          <button
+            className={`${styles.button} ${styles.primary} ${styles.large}`}
+            type="submit"
+            disabled={loading}
+          >
             {loading ? 'Working…' : isSignUp ? 'Create account' : 'Sign in'}
           </button>
         </form>
-        <div className="auth-divider">
+        <div className={styles.divider}>
           <span>or</span>
         </div>
-        <button className="button google-button" type="button" onClick={google} disabled={loading}>
+        <button
+          className={`${styles.button} ${styles.google}`}
+          type="button"
+          onClick={google}
+          disabled={loading}
+        >
           Continue with Google
         </button>
         {message && (
-          <p className="auth-message" role="status">
+          <p className={styles.message} role="status">
             {message}
           </p>
         )}
-        <p className="auth-switch">
+        <p className={styles.switch}>
           {isSignUp ? 'Already have an account?' : 'New to Acme Data Room?'}{' '}
           <Link href={isSignUp ? '/signin' : '/signup'}>
             {isSignUp ? 'Sign in' : 'Create an account'}

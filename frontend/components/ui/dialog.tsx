@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import styles from './dialog.module.css'
 
 export function Dialog({
 	open,
@@ -16,21 +17,21 @@ export function Dialog({
 	if (!open) return null
 	return (
 		<div
-			className='dialog-backdrop'
+			className={styles.backdrop}
 			role='presentation'
 			onMouseDown={() => onOpenChange(false)}
 		>
 			<section
-				className='dialog'
+				className={styles.dialog}
 				role='dialog'
 				aria-modal='true'
 				aria-labelledby='dialog-title'
 				onMouseDown={event => event.stopPropagation()}
 			>
-				<div className='dialog-header'>
+				<div className={styles.header}>
 					<h2 id='dialog-title'>{title}</h2>
 					<button
-						className='icon-button'
+						className={styles.iconButton}
 						aria-label='Close'
 						onClick={() => onOpenChange(false)}
 					>

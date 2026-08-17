@@ -1,0 +1,46 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(23 32 51 / 45%);
+}
+.dialog {
+  width: min(100%, 480px);
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 20px 60px rgb(23 32 51 / 25%);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header h2 {
+  margin: 0 0 1rem;
+}
+.dialog form {
+  display: grid;
+  gap: 0.8rem;
+}
+.dialog input,
+.dialog select {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+}
+.iconButton {
+  padding: 0.15rem 0.45rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #20304a;
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}

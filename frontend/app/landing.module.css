@@ -1,0 +1,108 @@
+.page {
+  max-width: 1120px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+}
+.nav,
+.actions,
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.nav {
+  justify-content: space-between;
+}
+.brand,
+.textLink {
+  text-decoration: none;
+  font-weight: 700;
+}
+.brand {
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.brand span {
+  color: var(--accent);
+  margin-left: 0.25rem;
+}
+.textLink {
+  color: var(--accent);
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+.large {
+  padding: 0.9rem 1.25rem;
+}
+.primary {
+  color: white;
+  background: var(--accent);
+}
+.secondary {
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--line);
+}
+.hero {
+  max-width: 760px;
+  padding: 10rem 0 7rem;
+}
+.hero h1 {
+  font-size: clamp(3rem, 7vw, 5.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.07em;
+  margin: 1rem 0 1.5rem;
+}
+.heroCopy {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1.65;
+}
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.number {
+  color: var(--accent);
+  font-weight: 800;
+}
+.features h2 {
+  margin: 0.8rem 0 0.4rem;
+}
+.features p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .page {
+    padding: 1.25rem;
+  }
+  .hero {
+    padding: 7rem 0 5rem;
+  }
+  .features {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .heroActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
