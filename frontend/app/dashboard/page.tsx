@@ -46,8 +46,14 @@ export default function DashboardPage() {
   const mutation = useMutation({
     mutationFn: (variables: MutationVariables) => executeMutation(variables),
     onSuccess: async (_data, variables) => {
-      await client.refetchQueries({ queryKey: ['listing'] });
       setDialog(null);
+      if (variables.method === 'DELETE' && variables.url.includes('/folders/')) {
+        const deletedFolderId = variables.url.split('/').at(-1);
+        setPath((current) =>
+          current.at(-1)?.id === deletedFolderId ? current.slice(0, -1) : current,
+        );
+      }
+      await client.invalidateQueries({ queryKey: ['listing'] });
       setToast(
         variables.body && typeof variables.body === 'object' && 'folderId' in variables.body
           ? 'File moved successfully'
