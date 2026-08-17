@@ -12,6 +12,14 @@ type Props = {
 };
 
 export function FileDialog({ dialog, value, folders, onValueChange, onClose, onSubmit }: Props) {
+  const currentFolderId =
+    dialog.kind === 'move' && dialog.item && 'folderId' in dialog.item
+      ? (dialog.item as RoomFile).folderId
+      : undefined;
+
+  const availableFolders = folders.filter((folder) => folder.id !== currentFolderId);
+  const noDestinations = dialog.kind === 'move' && !currentFolderId && availableFolders.length === 0;
+
   return (
     <Dialog
       open
@@ -35,16 +43,18 @@ export function FileDialog({ dialog, value, folders, onValueChange, onClose, onS
               : ` (${formatSize((dialog.item as RoomFile).sizeBytes)})`}?
           </p>
         ) : dialog.kind === 'move' ? (
-          <select value={value} onChange={(event) => onValueChange(event.target.value)}>
-            <option value={ROOT_DESTINATION}>Room root</option>
-            {folders
-              .filter((folder) => folder.id !== (dialog.item as RoomFile).folderId)
-              .map((folder) => (
+          noDestinations ? (
+            <p>No destination folders available.</p>
+          ) : (
+            <select value={value} onChange={(event) => onValueChange(event.target.value)}>
+              {currentFolderId && <option value={ROOT_DESTINATION}>Room root</option>}
+              {availableFolders.map((folder) => (
                 <option key={folder.id} value={folder.id}>
                   {folder.name}
                 </option>
               ))}
-          </select>
+            </select>
+          )
         ) : (
           <input
             autoFocus
@@ -57,7 +67,11 @@ export function FileDialog({ dialog, value, folders, onValueChange, onClose, onS
           <button type="button" onClick={onClose}>
             Cancel
           </button>
-          <button className={dialog.kind.startsWith('delete') ? 'danger' : 'primary'} type="submit">
+          <button
+            className={dialog.kind.startsWith('delete') ? 'danger' : 'primary'}
+            type="submit"
+            disabled={noDestinations}
+          >
             {dialog.kind.startsWith('delete') ? 'Delete' : 'Save'}
           </button>
         </div>

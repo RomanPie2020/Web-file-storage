@@ -97,21 +97,20 @@ export default function DashboardPage() {
 
   function openDialog(kind: DialogState['kind'], item?: Folder | RoomFile) {
     setDialog({ kind, item });
-    setValue(
-      kind === 'move' && item && 'folderId' in item ? (item.folderId ?? '') : (item?.name ?? ''),
-    );
+    if (kind === 'move' && item && 'folderId' in item) {
+      const file = item as RoomFile;
+      const initialTarget = file.folderId
+        ? ROOT_DESTINATION
+        : (allFoldersQuery.data?.[0]?.id ?? ROOT_DESTINATION);
+      setValue(initialTarget);
+    } else {
+      setValue(item?.name ?? '');
+    }
   }
   function submitDialog(event: React.FormEvent) {
     event.preventDefault();
     if (!room || !dialog) return;
     const destination = value === ROOT_DESTINATION ? null : value;
-    if (dialog.kind === 'move') {
-      setPath(
-        value === ROOT_DESTINATION
-          ? []
-          : [...path, ...folders.filter((folder) => folder.id === value)],
-      );
-    }
     mutation.mutate(
       buildDialogMutation({
         roomId: room.id,
