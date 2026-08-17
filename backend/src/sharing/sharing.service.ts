@@ -44,7 +44,49 @@ export class SharingService {
     }
     return this.prisma.share.create({ data: { resourceType: input.resourceType, resourceId: input.resourceId, shareType, sharedWithUserId, publicToken: shareType === ShareType.PUBLIC ? randomBytes(32).toString('base64url') : undefined, expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined }, select: { id: true, resourceType: true, resourceId: true, shareType: true, role: true, publicToken: true, sharedWithUserId: true, expiresAt: true, revokedAt: true, createdAt: true } });
   }
-  async list(userId: string, resource: Resource) { await this.owns(userId, resource); return this.prisma.share.findMany({ where: { resourceType: resource.resourceType, resourceId: resource.resourceId }, orderBy: { createdAt: 'desc' }, select: { id: true, resourceType: true, resourceId: true, shareType: true, role: true, publicToken: true, sharedWithUserId: true, expiresAt: true, revokedAt: true, createdAt: true } }); }
+  async list(userId: string, resource: Resource) {
+    await this.owns(userId, resource);
+    const shares = await this.prisma.share.findMany({
+      where: { resourceType: resource.resourceType, resourceId: resource.resourceId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        resourceType: true,
+        resourceId: true,
+        shareType: true,
+        role: true,
+        publicToken: true,
+        sharedWithUserId: true,
+        expiresAt: true,
+        revokedAt: true,
+        createdAt: true,
+      },
+    });
+
+    const userIds = shares
+      .filter((s) => s.shareType === ShareType.USER && s.sharedWithUserId)
+      .map((s) => s.sharedWithUserId as string);
+
+    let emailMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      try {
+        const usersList = await this.admin.auth.admin.listUsers({ perPage: 1000 });
+        for (const user of usersList.data.users) {
+          if (user.email) {
+            emailMap.set(user.id, user.email);
+          }
+        }
+      } catch {
+        // Fallback gracefully if admin auth fails
+      }
+    }
+
+    return shares.map((s) => ({
+      ...s,
+      recipientEmail: s.sharedWithUserId ? (emailMap.get(s.sharedWithUserId) ?? s.sharedWithUserId) : undefined,
+    }));
+  }
+
   async listForUser(userId: string) {
     const shares = await this.prisma.share.findMany({ where: { shareType: ShareType.USER, sharedWithUserId: userId, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }, orderBy: { createdAt: 'desc' } });
     return Promise.all(shares.map(async (share) => {

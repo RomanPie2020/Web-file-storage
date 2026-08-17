@@ -1,3 +1,4 @@
+import { FolderPlus, UploadCloud } from 'lucide-react';
 import type { DragEvent } from 'react';
 
 type Props = {
@@ -24,25 +25,30 @@ export function DashboardToolbar({
   return (
     <section className="toolbar">
       <h2>{title}</h2>
-      <button type="button" className="primary" onClick={onNewFolder}>
-        New folder
-      </button>
-      <label
-        className={`upload-dropzone${dragging ? ' is-dragging' : ''}`}
-        onDragEnter={onDragEnter}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-      >
-        <span>Drop PDFs here or click to browse</span>
-        <input
-          type="file"
-          accept="application/pdf,.pdf"
-          multiple
-          hidden
-          onChange={(event) => onUpload(event.target.files)}
-        />
-      </label>
+      <div className="toolbar-actions">
+        <button type="button" className="primary" onClick={onNewFolder}>
+          <FolderPlus size={16} />
+          <span>New folder</span>
+        </button>
+        <label
+          className={`upload-dropzone${dragging ? ' is-dragging' : ''}`}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
+          <UploadCloud size={16} />
+          <span>{dragging ? 'Drop PDF files here' : 'Upload PDF'}</span>
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            multiple
+            hidden
+            onChange={(event) => onUpload(event.target.files)}
+          />
+        </label>
+      </div>
     </section>
   );
 }
+

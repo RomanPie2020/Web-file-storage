@@ -17,8 +17,10 @@ import { FileDialog } from './components/file-dialog';
 import { FileList } from './components/file-list';
 import { UploadStatus } from './components/upload-status';
 import { FilePreviewDialog } from './components/file-preview-dialog';
+import { FolderOpen, Users } from 'lucide-react';
 
 const ROOT_DESTINATION = '__root__';
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -138,9 +140,12 @@ export default function DashboardPage() {
   if (roomQuery.isLoading || !room)
     return (
       <main className="app-shell">
-        <p>Loading your Data Room…</p>
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
+          Loading your Data Room…
+        </div>
       </main>
     );
+
   return (
     <main className="app-shell">
       <DashboardHeader
@@ -151,11 +156,33 @@ export default function DashboardPage() {
           router.replace('/');
         }}
       />
-      {sharedQuery.data && sharedQuery.data.length > 0 && <section className="shared-list"><h2>Shared with me</h2><ul>{sharedQuery.data.map((share) => <li key={share.id}><button type="button" onClick={() => window.open(`/share/user/${share.id}`, '_self')}>{share.resourceType} · {share.room?.name ?? 'Shared resource'} <small>Shared by {share.sharedBy}</small></button></li>)}</ul></section>}
+      {sharedQuery.data && sharedQuery.data.length > 0 && (
+        <section className="shared-list">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <Users size={16} color="var(--accent)" />
+            <h2>Shared with me</h2>
+          </div>
+          <ul>
+            {sharedQuery.data.map((share) => (
+              <li key={share.id}>
+                <button
+                  type="button"
+                  onClick={() => window.open(`/share/user/${share.id}`, '_self')}
+                >
+                  <span style={{ fontWeight: 500 }}>
+                    {share.resourceType} · {share.room?.name ?? 'Shared resource'}
+                  </span>
+                  <small style={{ color: 'var(--muted)' }}>Shared by {share.sharedBy}</small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {toast && <Toast onClose={() => setToast('')}>{toast}</Toast>}
       <Breadcrumbs path={path} onNavigate={(index) => setPath(path.slice(0, index))} />
       <DashboardToolbar
-        title={location.at(-1) === 'Root' ? 'Root folders' : location.at(-1)!}
+        title={location.at(-1) === 'Root' ? 'Root folder' : location.at(-1)!}
         dragging={upload.dragging}
         onNewFolder={() => openDialog('folder')}
         onDragEnter={(event) => {
@@ -172,9 +199,14 @@ export default function DashboardPage() {
       />
       <UploadStatus uploads={upload.uploads} />
       {listing.isLoading ? (
-        <p>Loading folders…</p>
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
+          Loading contents…
+        </div>
       ) : folders.length === 0 && files.length === 0 ? (
-        <p className="empty">This folder is empty. Create a folder to get started.</p>
+        <div className="empty-state">
+          <FolderOpen size={36} />
+          <p>This folder is empty. Create a folder or upload a PDF to get started.</p>
+        </div>
       ) : (
         <FileList
           folders={folders}
@@ -199,3 +231,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+

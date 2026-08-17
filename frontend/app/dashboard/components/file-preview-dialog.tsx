@@ -1,3 +1,4 @@
+import { Download, X, FileText } from 'lucide-react';
 import type { FilePreview } from '../types';
 import styles from './file-preview-dialog.module.css';
 
@@ -13,20 +14,44 @@ export function FilePreviewDialog({ preview, onClose }: Props) {
         aria-label={`Preview ${preview.name}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header>
-          <h2>{preview.name}</h2>
-          <button type="button" onClick={onClose} aria-label="Close preview">
-            Close
-          </button>
+        <header className={styles.previewHeader}>
+          <div className={styles.previewTitle}>
+            <FileText size={20} color="#dc2626" />
+            <div>
+              <h2>{preview.name}</h2>
+              <p className={styles.meta}>
+                {preview.mimeType} · {Number(preview.sizeBytes).toLocaleString()} bytes
+              </p>
+            </div>
+          </div>
+          <div className={styles.previewActions}>
+            <a
+              href={preview.downloadUrl}
+              download={preview.name}
+              className="btn primary"
+              style={{ textDecoration: 'none' }}
+            >
+              <Download size={15} />
+              <span>Download PDF</span>
+            </a>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={onClose}
+              aria-label="Close preview"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </header>
-        <p>
-          {preview.mimeType} · {Number(preview.sizeBytes).toLocaleString()} bytes
-        </p>
-        <iframe title={`PDF preview of ${preview.name}`} src={preview.url} className={styles.pdf} />
-        <a href={preview.downloadUrl} download={preview.name}>
-          Download PDF
-        </a>
+
+        <iframe
+          title={`PDF preview of ${preview.name}`}
+          src={preview.url}
+          className={styles.pdf}
+        />
       </section>
     </div>
   );
 }
+

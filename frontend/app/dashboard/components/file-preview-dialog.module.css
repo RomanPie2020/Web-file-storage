@@ -1,23 +1,69 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 50;
   display: grid;
   place-items: center;
-  padding: 1rem;
-  background: rgb(23 32 51 / 45%);
-}
-.dialog {
-  width: min(900px, 95vw);
   padding: 1.25rem;
-  border-radius: 14px;
-  background: white;
-  box-shadow: 0 20px 60px rgb(23 32 51 / 25%);
+  background: rgb(15 23 42 / 60%);
 }
+
+.dialog {
+  width: min(960px, 95vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 20%);
+  border: 1px solid var(--line);
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.previewTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.previewTitle h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0.15rem 0 0 0;
+}
+
+.previewActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .pdf {
   display: block;
   width: 100%;
-  height: min(70vh, 720px);
-  border: 1px solid #d7dce5;
-  margin: 1rem 0;
+  height: 65vh;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-top: 1rem;
+  background: #f8fafc;
 }
+
