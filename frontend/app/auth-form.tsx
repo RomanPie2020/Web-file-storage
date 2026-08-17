@@ -5,6 +5,14 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase-browser';
 import styles from './auth.module.css';
 
+const passwordChecks = [
+  { label: 'At least 12 characters', test: (value: string) => value.length >= 12 },
+  { label: 'One uppercase letter', test: (value: string) => /[A-Z]/.test(value) },
+  { label: 'One lowercase letter', test: (value: string) => /[a-z]/.test(value) },
+  { label: 'One number', test: (value: string) => /\d/.test(value) },
+  { label: 'One special character', test: (value: string) => /[^A-Za-z0-9\s]/.test(value) },
+];
+
 export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
   const router = useRouter();
   const isSignUp = mode === 'signup';
@@ -12,12 +20,19 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [messageKind, setMessageKind] = useState<'success' | 'error' | ''>('');
   const [loading, setLoading] = useState(false);
+  const passwordIsValid = passwordChecks.every(({ test }) => test(password));
+  const emailIsInvalid = email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const passwordsDoNotMatch =
+    isSignUp && confirmPassword.length > 0 && password !== confirmPassword;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
+    setMessageKind('');
     if (isSignUp && password !== confirmPassword) {
       setMessage('Passwords do not match.');
+      setMessageKind('error');
       return;
     }
     setLoading(true);
@@ -27,9 +42,13 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
     setLoading(false);
     if (result.error) {
       setMessage(result.error.message);
+      setMessageKind('error');
       return;
     }
-    if (isSignUp) setMessage('Account created. Check your email if confirmation is enabled.');
+    if (isSignUp) {
+      setMessage('Account created! Check your inbox to confirm your email address.');
+      setMessageKind('success');
+    }
     else router.push('/dashboard');
   }
   async function google() {
@@ -40,6 +59,7 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
     });
     if (error) {
       setMessage(error.message);
+      setMessageKind('error');
       setLoading(false);
     }
   }
@@ -62,8 +82,13 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              aria-invalid={emailIsInvalid}
+              className={emailIsInvalid ? styles.invalidInput : ''}
               required
             />
+            {emailIsInvalid && (
+              <span className={styles.fieldError}>Enter a valid email address.</span>
+            )}
           </label>
           <label className={styles.label}>
             Password
@@ -71,11 +96,27 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
+              minLength={isSignUp ? 12 : undefined}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
               required
             />
           </label>
+          {isSignUp && (
+            <div className={styles.passwordRequirements} aria-live="polite">
+              <p>Password requirements</p>
+              <ul>
+                {passwordChecks.map(({ label, test }) => {
+                  const passed = test(password);
+                  return (
+                    <li key={label} className={passed ? styles.requirementPassed : ''}>
+                      <span aria-hidden="true">{passed ? '✓' : '○'}</span>
+                      {label}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
           {isSignUp && (
             <label className={styles.label}>
               Confirm password
@@ -83,19 +124,36 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                minLength={6}
+                minLength={12}
                 autoComplete="new-password"
+                aria-invalid={passwordsDoNotMatch}
+                className={passwordsDoNotMatch ? styles.invalidInput : ''}
                 required
               />
+              {passwordsDoNotMatch && (
+                <span className={styles.fieldError}>Passwords do not match.</span>
+              )}
             </label>
           )}
           <button
             className={`${styles.button} ${styles.primary} ${styles.large}`}
             type="submit"
-            disabled={loading}
+            disabled={loading || (isSignUp && (!passwordIsValid || password !== confirmPassword))}
           >
             {loading ? 'Working…' : isSignUp ? 'Create account' : 'Sign in'}
           </button>
+          {message && (
+            <p
+              className={`${styles.message} ${
+                messageKind === 'success' ? styles.successMessage : styles.errorMessage
+              }`}
+              role={messageKind === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+            >
+              <span aria-hidden="true">{messageKind === 'success' ? '✓' : '!'}</span>
+              {message}
+            </p>
+          )}
         </form>
         <div className={styles.divider}>
           <span>or</span>
@@ -108,11 +166,6 @@ export function AuthForm({ mode }: { mode: 'signin' | 'signup' }) {
         >
           Continue with Google
         </button>
-        {message && (
-          <p className={styles.message} role="status">
-            {message}
-          </p>
-        )}
         <p className={styles.switch}>
           {isSignUp ? 'Already have an account?' : 'New to Acme Data Room?'}{' '}
           <Link href={isSignUp ? '/signin' : '/signup'}>

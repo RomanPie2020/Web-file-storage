@@ -1,11 +1,22 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { DataRoomsService } from '../data-rooms/data-rooms.service';
 import { Public } from './public.decorator';
+import { AuthService } from './auth.service';
+import { SignupDto, SignupValidationPipe } from './signup.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly dataRooms: DataRoomsService) {}
+  constructor(
+    private readonly dataRooms: DataRoomsService,
+    private readonly auth: AuthService,
+  ) {}
+
+  @Public()
+  @Post('signup')
+  signup(@Body(SignupValidationPipe) body: SignupDto) {
+    return this.auth.signup(body);
+  }
 
   @Public()
   @Get('status')

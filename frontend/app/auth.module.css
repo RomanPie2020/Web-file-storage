@@ -60,6 +60,51 @@
   border-radius: 8px;
   font: inherit;
 }
+.label input.invalidInput {
+  border-color: #d92d20;
+  outline: 2px solid rgb(217 45 32 / 12%);
+}
+.fieldError {
+  color: #b42318;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.passwordRequirements {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #dbe5f2;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.passwordRequirements p {
+  margin: 0 0 0.45rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+.passwordRequirements ul {
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.passwordRequirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.passwordRequirements li span {
+  width: 1rem;
+  color: #8a99ad;
+  font-weight: 800;
+}
+.passwordRequirements .requirementPassed {
+  color: #18794e;
+}
+.passwordRequirements .requirementPassed span {
+  color: #18794e;
+}
 .button {
   display: inline-flex;
   align-items: center;
@@ -99,8 +144,42 @@
   border: 1px solid var(--line);
 }
 .message {
-  color: #b42318;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.85rem 0.95rem;
+  border-radius: 8px;
   font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.message span {
+  display: grid;
+  flex: 0 0 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.successMessage {
+  color: #146c43;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+.successMessage span {
+  background: #16a05d;
+}
+.errorMessage {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+.errorMessage span {
+  background: #d92d20;
 }
 .switch {
   text-align: center;
