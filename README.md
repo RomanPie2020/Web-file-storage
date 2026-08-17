@@ -8,9 +8,9 @@ See [CODING_STANDARDS.md](CODING_STANDARDS.md) for project-wide standards on rea
 
 ## 🚀 Deployed / Hosted URLs
 
-- **Frontend**: [https://frontend-production-acme.vercel.app](https://frontend-production-acme.vercel.app) *(Deploy URL placeholder / configurable per environment)*
-- **Backend API**: [https://backend-production-acme.up.railway.app](https://backend-production-acme.up.railway.app) *(Deploy URL placeholder / configurable per environment)*
-
+- **Frontend**: [https://web-file-storage-omega.vercel.app/signup](https://web-file-storage-omega.vercel.app/signup) *(Deploy URL placeholder / configurable per environment)*
+- **Backend API**: [https://web-file-storage.onrender.com/](https://web-file-storage.onrender.com/) *(Deploy URL placeholder / configurable per environment)*
+  
 ---
 
 ## 📐 Design Decisions & Architecture
