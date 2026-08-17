@@ -21,7 +21,6 @@ import { FolderOpen, Users } from 'lucide-react';
 
 const ROOT_DESTINATION = '__root__';
 
-
 export default function DashboardPage() {
   const router = useRouter();
   const client = useQueryClient();
@@ -66,7 +65,9 @@ export default function DashboardPage() {
       if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
         setPath((current) => current.slice(0, -1));
         void client.invalidateQueries({ queryKey: ['listing'] });
-        setToast('That item is no longer available. You were returned to the nearest accessible folder.');
+        setToast(
+          'That item is no longer available. You were returned to the nearest accessible folder.',
+        );
         setDialog(null);
         return;
       }
@@ -91,9 +92,14 @@ export default function DashboardPage() {
       void client.invalidateQueries({ queryKey: ['listing'] });
   }, [client, upload.uploads]);
   useEffect(() => {
-    if (listing.error instanceof ApiError && (listing.error.status === 404 || listing.error.status === 403)) {
+    if (
+      listing.error instanceof ApiError &&
+      (listing.error.status === 404 || listing.error.status === 403)
+    ) {
       setPath((current) => current.slice(0, -1));
-      setToast('This folder is no longer available. You were returned to the nearest accessible folder.');
+      setToast(
+        'This folder is no longer available. You were returned to the nearest accessible folder.',
+      );
     }
   }, [listing.error]);
 
@@ -130,7 +136,9 @@ export default function DashboardPage() {
     } catch (error) {
       if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
         setPath((current) => current.slice(0, -1));
-        setToast('This file is no longer available. You were returned to the nearest accessible folder.');
+        setToast(
+          'This file is no longer available. You were returned to the nearest accessible folder.',
+        );
         return;
       }
       setPreviewError(error instanceof Error ? error.message : 'Preview unavailable');
@@ -158,7 +166,9 @@ export default function DashboardPage() {
       />
       {sharedQuery.data && sharedQuery.data.length > 0 && (
         <section className="shared-list">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}
+          >
             <Users size={16} color="var(--accent)" />
             <h2>Shared with me</h2>
           </div>
@@ -231,4 +241,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-
